@@ -3,13 +3,11 @@ WebServer is a module that starts a webserver (without the need for IIS). Powers
 
 See Script Center version: [Powershell Webserver](https://gallery.technet.microsoft.com/Powershell-Webserver-74dcf466).
 
-### Author: Markus Scholtes
+Author: Markus Scholtes
 
-### Module version: 1.0.0
+Module version: 1.0.0 / 2020-06-04
 
-### Script version: 1.2
-
-### Date: 2019-08-30
+Script version: 1.2 / 2019-08-30
 
 ## Installation
 Install with
@@ -48,8 +46,9 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
-# 1.0.0 / 2020-06-04
-* Initial release
+* 1.0.0 / 2020-06-04
+
+- Initial release
 
 ## Examples:
 Start webserver with binding to http://localhost:8080/:
