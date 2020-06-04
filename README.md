@@ -46,8 +46,7 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
-* 1.0.0 / 2020-06-04
-
+### 1.0.0 / 2020-06-04
 - Initial release
 
 ## Examples:
