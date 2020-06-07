@@ -20,8 +20,8 @@ $CERTIFICATE
 ```
 
 ## Step 2: Bind certificate to application and port
-Now the certificate must be bound to the application **Powershell** and the desired port, in this example we use port 8443. 
-(the AppID of Powershell.exe is {1AC14E77-02E7-4E5D-B744-2EB1AE5198B7})
+Now the certificate must be bound to the application **Powershell** and the desired port, in this example we use port 8443\
+(the AppID of Powershell.exe is {1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}).
 
 ```powershell
 # certificate binding to application "Powershell" and port 8443 
@@ -35,7 +35,8 @@ netsh http show sslcert
 ```
 
 ## Step 3: Create firewall share
-Now we have to create a firewall share so that the web server can be reached from the network (this step is not necessary for local use only).
+Now we have to create a firewall share so that the web server can be reached from the network\
+(this step is not necessary for local use only).
 
 ```powershell
 # create firewall share
