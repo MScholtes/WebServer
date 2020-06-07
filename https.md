@@ -1,12 +1,10 @@
-﻿# How to enable http encryption
-You can also let the Powershell Webserver deliver encrypted traffic. This is done using the encryption stack of the operating system.
+﻿# How to enable https encryption
+You can also let the **Powershell Webserver** deliver encrypted traffic. This is done using the encryption stack of the operating system.
 
-The following description describes the use of a self-created certificate. This must be accepted or imported on the browser page.
-
-If a valid certificate already exists, steps 1 and 7 are skipped and in step 2 you have to use the thumbprint of your certificate
+The following description describes the use of a self-created certificate. This must be accepted or imported on the browser page. If a valid certificate already exists you want to use, steps 1 and 7 are skipped and in step 2 you have to use the thumbprint of your certificate
 
 ## Step 1: Create self-signed certificate
-Start an administrative Powershell console. With the following commands you create a certificate
+Start an administrative Powershell console. With the following commands you create a certificate:
 ```powershell
 # create self-signed certificate ('localhost', first found IPv4 address, hostname and FQDN is used for it)
 $FIRSTIP = (Get-NetIPAddress -AddressFamily IPv4 | Select -First 1).IPAddress
@@ -15,21 +13,22 @@ $DNSNAMES = "localhost", $FIRSTIP, $($ENV:COMPUTERNAME.ToLower()), "$FQDN"
 $CERTIFICATE = New-SelfSignedCertificate -DnsName $DNSNAMES -CertStoreLocation CERT:\LocalMachine\My
 ```
 
-You can view the certificate you just created as follows
+You can view the certificate you just created as follows:
 ```powershell
 # view certificate
-$ZERTIFIKAT
+$CERTIFICATE
 ```
 
 ## Step 2: Bind certificate to application and port
-Now the certificate must be bound to the application "Powershell" and the desired port, in this example we use port 8443 (the AppID of Powershell.exe is {1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}).
+Now the certificate must be bound to the application **Powershell** and the desired port, in this example we use port 8443. 
+(the AppID of Powershell.exe is {1AC14E77-02E7-4E5D-B744-2EB1AE5198B7})
 
 ```powershell
 # certificate binding to application "Powershell" and port 8443 
 netsh http add sslcert ipport=0.0.0.0:8443 certhash=$($CERTIFICATE.Thumbprint) --% appid={1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}
 ```
 
-You can view the binding you just created as follows
+You can view the binding you just created as follows:
 ```powershell
 # view binding
 netsh http show sslcert
@@ -43,7 +42,7 @@ Now we have to create a firewall share so that the web server can be reached fro
 netsh advfirewall firewall add rule name="Powershell Webserver" dir=in action=allow protocol=TCP localport=8443
 ```
 
-## Step 4: Start web server
+## Step 4: Run web server
 Now we have to start the web server with *https* and the port to listen to as parameters.
 
 ```powershell
@@ -70,7 +69,7 @@ netsh http delete sslcert ipport=0.0.0.0:8443
 ```
 
 ## Step 7: Remove certificate
-The following command removes the certificate.
+The following command removes the certificate (the command assumes that the used certificate is still in the variable $CERTIFICATE).
 
 ```powershell
 # remove certificate
