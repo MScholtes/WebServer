@@ -1,7 +1,7 @@
 ﻿# How to enable https encryption
 You can also let the **Powershell Webserver** deliver encrypted traffic. This is done using the encryption stack of the operating system.
 
-The following description describes the use of a self-created certificate. This must be accepted or imported on the browser page. If a valid certificate already exists you want to use, steps 1 and 7 are skipped and in step 2 you have to use the thumbprint of your certificate
+The following description describes the use of a self-created certificate. This must be accepted or imported on the browser page. If a valid certificate already exists you want to use, steps 1 and 7 are skipped and in step 2 you have to use the thumbprint of your certificate.
 
 ## Step 1: Create self-signed certificate
 Start an administrative Powershell console. With the following commands you create a certificate:
@@ -70,7 +70,7 @@ netsh http delete sslcert ipport=0.0.0.0:8443
 ```
 
 ## Step 7: Remove certificate
-The following command removes the certificate (the command assumes that the used certificate is still in the variable $CERTIFICATE).
+The following command removes the certificate (the command assumes that the used certificate is still in the variable $CERTIFICATE, otherwise determine the thumbprint).
 
 ```powershell
 # remove certificate
