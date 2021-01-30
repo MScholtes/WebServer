@@ -1,7 +1,7 @@
 # Powershell Webserver
 WebServer is a module that starts a webserver (without the need for IIS). Powershell command execution, script execution, upload, download and other functions are implemented.
 
-See Script Center version: [Powershell Webserver](https://gallery.technet.microsoft.com/Powershell-Webserver-74dcf466).
+See Script Center version: [Powershell Webserver](https://github.com/MScholtes/TechNet-Gallery).
 
 Author: Markus Scholtes
 
