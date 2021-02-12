@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-WebServer is a module that starts a webserver (without the need for IIS). 
+Powershell WebServer is a module that starts a webserver (without the need for IIS). 
 .NOTES
-Version: 1.0.0
-Date: 2020-06-04
+Version: 1.0.1
+Date: 2021-02-12
 Author: Markus Scholtes
 #>
 

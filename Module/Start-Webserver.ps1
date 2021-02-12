@@ -44,6 +44,10 @@ Scheduled tasks are running with low priority per default, so some functions mig
 .Notes
 Version 1.2, 2019-08-26
 Author: Markus Scholtes
+.LINK
+https://github.com/MScholtes/WebServer
+.LINK
+https://github.com/MScholtes/TechNet-Gallery
 #>
 function Start-Webserver
 {
