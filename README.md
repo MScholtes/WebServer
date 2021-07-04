@@ -5,9 +5,9 @@ See Script Center version: [Powershell Webserver](https://github.com/MScholtes/T
 
 Author: Markus Scholtes
 
-Module version: 1.0.1 / 2021-02-12
+Module version: 1.0.2 / 2021-07-04
 
-Script version: 1.2 / 2019-08-30
+Script version: 1.2.1 / 2021-07-04
 
 ## Installation
 Install with
@@ -46,6 +46,9 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+### 1.0.2 / 2021-07-04
+ - Updated list of mime types
+
 ### 1.0.1 / 2021-02-21
 - Updated links since Technet Gallery shut down
 
