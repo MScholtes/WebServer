@@ -47,7 +47,7 @@ If you give it a try, see remarks below by all means.
 
 ## Versions
 ### 1.0.3 / 2022-01-19
- - Start index file in base dir instead of default page when present
+ - Load index file in base dir instead of default page when present
 
 ### 1.0.2 / 2021-07-04
  - Updated list of mime types
