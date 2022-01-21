@@ -5,9 +5,9 @@ See Script Center version: [Powershell Webserver](https://github.com/MScholtes/T
 
 Author: Markus Scholtes
 
-Module version: 1.0.2 / 2021-07-04
+Module version: 1.0.3 / 2022-01-19
 
-Script version: 1.2.1 / 2021-07-04
+Script version: 1.2.2 / 2022-01-19
 
 ## Installation
 Install with
@@ -46,6 +46,9 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+### 1.0.3 / 2022-01-19
+ - Start index file in base dir instead of default page when present
+
 ### 1.0.2 / 2021-07-04
  - Updated list of mime types
 
