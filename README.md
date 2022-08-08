@@ -5,9 +5,9 @@ See Script Center version: [Powershell Webserver](https://github.com/MScholtes/T
 
 Author: Markus Scholtes
 
-Module version: 1.0.4 / 2022-04-15
+Module version: 1.0.5 / 2022-07-31
 
-Script version: 1.3 / 2022-04-15
+Script version: 1.4 / 2022-07-31
 
 ## Installation
 Install with
@@ -33,6 +33,7 @@ The module WebServer implements a webserver with the following functions:
 * powershell script upload and execution (as a function)
 * download files from the server
 * upload files to the server
+* script execution and embedded code with psp files
 * make the webserver beep (to find servers in the datacenter)
 * show webserver logs
 * show server starttime and current time
@@ -46,6 +47,10 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+### 1.0.5 / 2022-07-31
+ - Introduced PSP files (Powershell Server Pages) for embedded execution
+ - Updated list of mime types
+
 ### 1.0.4 / 2022-04-15
 - Logs response code
 - Scripts (.ps1, .bat and .cmd) in web directory are executed by web server
@@ -94,6 +99,12 @@ schtasks.exe /Delete /TN "Powershell Webserver"
 (Scheduled tasks are always running with low priority, so some functions might be slow)
 
 ![Screen Browser](ScreenVerySmall.jpg)
+
+## Embedded code
+You can embed powershell code in html files with psp files ("Powershell Server Pages"). Psp files are html files in which the switch code <% toggles to powershell code and %> toggles back to html.
+
+![Screen Browser](PSP.jpg)
+
 
 ## Remarks
 

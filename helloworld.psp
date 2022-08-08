@@ -1,0 +1,18 @@
+<%Param($first,$second)%>
+<!doctype html>
+<html>
+	<head>
+		<title>Powershell Server Pages (PSP) demo</title>
+		<meta charset="utf-8">
+	</head>
+	<body>
+		<H3>Powershell Server Pages (PSP) demo</H3>
+		<hr />
+		Hello <% = $first %>,
+<%
+Write-Output "<br />"
+Write-Output $second
+%>
+		<hr />
+	</body>
+</html>
