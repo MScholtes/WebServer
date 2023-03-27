@@ -5,9 +5,9 @@ See Script Center version: [Powershell Webserver](https://github.com/MScholtes/T
 
 Author: Markus Scholtes
 
-Module version: 1.0.5 / 2022-07-31
+Module version: 1.0.6 / 2023-03-27
 
-Script version: 1.4 / 2022-07-31
+Script version: 1.5 / 2023-03-26
 
 ## Installation
 Install with
@@ -47,6 +47,10 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+### 1.0.6 / 2023-03-27
+ - changed header encoding to Windows 1252 to prevent data loss in cjk encodings
+ - fixed bug that cut file names with semicolons in it
+
 ### 1.0.5 / 2022-07-31
  - Introduced PSP files (Powershell Server Pages) for embedded execution
  - Updated list of mime types
