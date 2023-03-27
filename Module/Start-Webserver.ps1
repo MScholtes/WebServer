@@ -42,7 +42,7 @@ Delete the webserver task with
 	schtasks.exe /Delete /TN "Powershell Webserver"
 Scheduled tasks are running with low priority per default, so some functions might be slow.
 .Notes
-Version 1.4, 2022-07-31
+Version 1.5, 2023-03-26
 Author: Markus Scholtes
 .LINK
 https://github.com/MScholtes/WebServer
@@ -135,10 +135,10 @@ function Start-Webserver
 "@
 		'POST /script' = "<!doctype html><html><body>!HEADERLINE<pre>!RESULT</pre></body></html>"
 		'POST /upload' = "<!doctype html><html><body>!HEADERLINE<pre>!RESULT</pre></body></html>"
-		'GET /exit' = "<!doctype html><html><body>Stopped powershell webserver</body></html>"
-		'GET /quit' = "<!doctype html><html><body>Stopped powershell webserver</body></html>"
-		'GET /log' = "<!doctype html><html><body>!HEADERLINELog of powershell webserver:<br /><pre>!RESULT</pre></body></html>"
-		'GET /starttime' = "<!doctype html><html><body>!HEADERLINEPowershell webserver started at $(Get-Date -Format s)</body></html>"
+		'GET /exit' = "<!doctype html><html><body>Stopped webserver</body></html>"
+		'GET /quit' = "<!doctype html><html><body>Stopped webserver</body></html>"
+		'GET /log' = "<!doctype html><html><body>!HEADERLINELog of webserver:<br /><pre>!RESULT</pre></body></html>"
+		'GET /starttime' = "<!doctype html><html><body>!HEADERLINEWebserver started at $(Get-Date -Format s)</body></html>"
 		'GET /time' = "<!doctype html><html><body>!HEADERLINECurrent time: !RESULT</body></html>"
 		'GET /beep' = "<!doctype html><html><body>!HEADERLINEBEEP...</body></html>"
 	}
@@ -146,8 +146,8 @@ function Start-Webserver
 	# Set navigation header line for all web pages
 	$HEADERLINE = "<p><a href='/command'>Command execution</a> <a href='/script'>Execute script</a> <a href='/download'>Download file</a> <a href='/upload'>Upload file</a> <a href='/log'>Web logs</a> <a href='/starttime'>Webserver start time</a> <a href='/time'>Current time</a> <a href='/beep'>Beep</a> <a href='/quit'>Stop webserver</a></p>"
 
-	# Starting the powershell webserver
-	"$(Get-Date -Format s) Starting powershell webserver..."
+	# Starting the webserver
+	"$(Get-Date -Format s) Starting webserver..."
 	$LISTENER = New-Object System.Net.HttpListener
 	$LISTENER.Prefixes.Add($BINDING)
 	$LISTENER.Start()
@@ -155,8 +155,8 @@ function Start-Webserver
 
 	try
 	{
-		"$(Get-Date -Format s) Powershell webserver started."
-		$WEBLOG = "$(Get-Date -Format s) Powershell webserver started.`n"
+		"$(Get-Date -Format s) Webserver started."
+		$WEBLOG = "$(Get-Date -Format s) Webserver started.`n"
 		while ($LISTENER.IsListening)
 		{
 			# analyze incoming request
@@ -189,6 +189,7 @@ function Start-Webserver
 					{
 						try {
 							# ... execute command
+							$RESULT = ""
 							$RESULT = Invoke-Expression -EA SilentlyContinue $FORMFIELD 2> $NULL | Out-String
 						}
 						catch
@@ -240,8 +241,8 @@ function Start-Webserver
 							if ($BOUNDARY)
 							{ # only if header separator was found
 
-								# read complete header (inkl. file data) into string
-								$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, $REQUEST.ContentEncoding)
+								# read complete header (inkl. file data) into string. Use Windows 1252 to ensure no data loss in process of bytes-string conversion
+								$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, [System.Text.Encoding]::GetEncoding(1252))
 								$DATA = $READER.ReadToEnd()
 								$READER.Close()
 								$REQUEST.InputStream.Close()
@@ -259,7 +260,7 @@ function Start-Webserver
 										{
 											# header data before two CRs is meta data
 											# first look for the file in header "filedata"
-											if ($_.Substring(0, $_.IndexOf("`r`n`r`n")) -match "Content-Disposition: form-data; name=(.*);")
+											if ($_.Substring(0, $_.IndexOf("`r`n`r`n")) -match "Content-Disposition: form-data; name=(.*?);")
 											{
 												$HEADERNAME = $MATCHES[1] -replace '\"'
 												# headername "filedata"?
@@ -295,6 +296,7 @@ function Start-Webserver
 									$EXECUTE = "function Powershell-WebServer-Func {`n" + $FILEDATA + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
 									try {
 										# ... execute script
+										$RESULT = ""
 										$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
 									}
 									catch
@@ -328,8 +330,8 @@ function Start-Webserver
 					# is POST data in the request?
 					if ($REQUEST.HasEntityBody)
 					{ # POST request
-						# read complete header into string
-						$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, $REQUEST.ContentEncoding)
+						# read complete header into string. Use Windows 1252 to ensure no data loss in process of bytes-string conversion
+						$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, [System.Text.Encoding]::GetEncoding(1252))
 						$DATA = $READER.ReadToEnd()
 						$READER.Close()
 						$REQUEST.InputStream.Close()
@@ -357,19 +359,21 @@ function Start-Webserver
 
 					# when path is given...
 					if (![STRING]::IsNullOrEmpty($FORMFIELD))
-					{ # check if file exists
-						if (Test-Path $FORMFIELD -PathType Leaf)
+					{ # HTML escape name for possible cjk filenames
+						$ESCFORMFIELD = [Net.WebUtility]::HtmlDecode($FORMFIELD)
+						# check if file exists
+						if (Test-Path $ESCFORMFIELD -PathType Leaf)
 						{
 							try {
 								# ... download file
-								$BUFFER = [System.IO.File]::ReadAllBytes($FORMFIELD)
+								$BUFFER = [System.IO.File]::ReadAllBytes($ESCFORMFIELD)
 								$RESPONSE.ContentLength64 = $BUFFER.Length
 								$RESPONSE.SendChunked = $FALSE
 								$RESPONSE.ContentType = "application/octet-stream"
-								$FILENAME = Split-Path -Leaf $FORMFIELD
+								$FILENAME = Split-Path -Leaf $ESCFORMFIELD
 								$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
-								$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($FORMFIELD).ToString('r'))
-								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
+								$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($ESCFORMFIELD).ToString('r'))
+								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
 								$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 								# mark response as already given
 								$RESPONSEWRITTEN = $TRUE
@@ -380,7 +384,7 @@ function Start-Webserver
 							}
 							if ($Error.Count -gt 0)
 							{ # retrieve error message on error
-								$RESULT += "`nError while downloading '$FORMFIELD'`n`n"
+								$RESULT = "`nError while downloading '$FORMFIELD'`n`n"
 								$RESULT += $Error[0]
 								$Error.Clear()
 							}
@@ -426,8 +430,8 @@ function Start-Webserver
 							if ($BOUNDARY)
 							{ # only if header separator was found
 
-								# read complete header (inkl. file data) into string
-								$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, $REQUEST.ContentEncoding)
+								# read complete header (inkl. file data) into string. Use Windows 1252 to ensure no data loss in process of bytes-string conversion
+								$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, [System.Text.Encoding]::GetEncoding(1252))
 								$DATA = $READER.ReadToEnd()
 								$READER.Close()
 								$REQUEST.InputStream.Close()
@@ -446,7 +450,7 @@ function Start-Webserver
 										{
 											# header data before two CRs is meta data
 											# first look for the file in header "filedata"
-											if ($_.Substring(0, $_.IndexOf("`r`n`r`n")) -match "Content-Disposition: form-data; name=(.*);")
+											if ($_.Substring(0, $_.IndexOf("`r`n`r`n")) -match "Content-Disposition: form-data; name=(.*?);")
 											{
 												$HEADERNAME = $MATCHES[1] -replace '\"'
 												# headername "filedata"?
@@ -493,8 +497,10 @@ function Start-Webserver
 										}
 
 										try {
-											# ... save file with the same encoding as received
-											[IO.File]::WriteAllText($TARGETNAME, $FILEDATA, $REQUEST.ContentEncoding)
+											# HTML escape name for possible cjk filenames
+											$ESCTARGETNAME = [Net.WebUtility]::HtmlDecode($TARGETNAME)
+											# ... save file with the Windows 1252 encoding to preserve special characters
+											[IO.File]::WriteAllText($ESCTARGETNAME, $FILEDATA, [System.Text.Encoding]::GetEncoding(1252))
 										}
 										catch
 										{
@@ -502,7 +508,7 @@ function Start-Webserver
 										}
 										if ($Error.Count -gt 0)
 										{ # retrieve error message on error
-											$RESULT += "`nError saving '$TARGETNAME'`n`n"
+											$RESULT = "`nError saving '$TARGETNAME'`n`n"
 											$RESULT += $Error[0]
 											$Error.Clear()
 										}
@@ -543,7 +549,7 @@ function Start-Webserver
 				}
 
 				"GET /starttime"
-				{ # return start time of the powershell webserver (already contained in $HTMLRESPONSE, nothing to do here)
+				{ # return start time of the webserver (already contained in $HTMLRESPONSE, nothing to do here)
 					break
 				}
 
@@ -554,12 +560,12 @@ function Start-Webserver
 				}
 
 				"GET /quit"
-				{ # stop powershell webserver, nothing to do here
+				{ # stop webserver, nothing to do here
 					break
 				}
 
 				"GET /exit"
-				{ # stop powershell webserver, nothing to do here
+				{ # stop webserver, nothing to do here
 					break
 				}
 
@@ -634,6 +640,7 @@ function Start-Webserver
 									try {
 										$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
 										$EXECUTE = "function Powershell-WebServer-Func {`n" + $SCRIPTFILE + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
+										$RESULT = ""
 										$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
 									}
 									catch
@@ -652,6 +659,7 @@ function Start-Webserver
 								{ $_ -in (".bat",".cmd") }
 								{
 									try {
+										$RESULT = ""
 										$RESULT = cmd.exe /c $CHECKFILE $PARAMETERS 2>&1
 									}
 									catch
@@ -666,38 +674,38 @@ function Start-Webserver
 									}
 									break
 								}
-	
+
 								".psp"
 								{
 									try {
 										$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
-	
+
 										# assume text mode at script start
 										$CURRENTMODE = $TRUE
 										$PARSEDSCRIPT = "@`"`r`n"
-	
+
 										# create array of script lines
 										$TEXTLINES = $SCRIPTFILE.split("`n") -replace "\r$",""
-	
+
 										if ($TEXTLINES[0].TrimStart() -match '<%*')
 										{ # text starts with code
 											$PARSEDSCRIPT = ""
 											$CURRENTMODE = $FALSE
 											$TEXTLINES[0] = $TEXTLINES[0].TrimStart().SubString(2)
 										}
-	
+
 										for ($l = 0; $l -lt $TEXTLINES.Length; $l++)
 										{ # iterate through lines
-	
+
 											if ($TEXTLINES[$l].IndexOf("%") -ge 0)
 											{	$TEXTISEMPTY = $FALSE
 												$STARTCODEINLINE = $FALSE
 												$PARSEDLINE = ""
 												$TEXTPART = $TEXTLINES[$l].split("%")
-	
+
 												for ($i = 0; $i -lt $TEXTPART.Length; $i++)
 												{ # iterate through text block between percent signs
-	
+
 													if ($CURRENTMODE)
 													{ # current mode is text mode
 														if ($TEXTPART[$i][$TEXTPART[$i].Length - 1] -eq "<")
@@ -756,7 +764,7 @@ function Start-Webserver
 																	$CURRENTMODE = $FALSE
 																}
 															}
-	
+
 															if ($TEXTPART[$i][$TEXTPART[$i].Length - 1] -eq "<")
 															{ # switch to script mode at the end of current block
 																$PARSEDSCRIPT += "$($TEXTPART[$i].Substring(1, $TEXTPART[$i].Length - 2))" -replace '\"@','`"@' -replace '\$','`$'
@@ -783,7 +791,7 @@ function Start-Webserver
 														}
 													}
 												}
-	
+
 												# process remaining text of line
 												if ($STARTCODEINLINE)
 												{ # text started as if inline code, but not ended so in line
@@ -818,13 +826,14 @@ function Start-Webserver
 												$PARSEDSCRIPT += "`r`n"
 											}
 										}
-	
+
 										if ($CURRENTMODE)
 										{ # stop text mode at end of script
 											$PARSEDSCRIPT += "`"@`r`n"
 										}
-	
+
 										$EXECUTE = "function Powershell-WebServer-Func {`n" + $PARSEDSCRIPT + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
+										$RESULT = ""
 										$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
 										$HTMLRESPONSE = "!RESULT"
 									}
@@ -859,7 +868,7 @@ function Start-Webserver
 									$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
 								}
 								$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($CHECKFILE).ToString('r'))
-								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
+								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
 								$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 								# mark response as already given
 								$RESPONSEWRITTEN = $TRUE
@@ -870,7 +879,7 @@ function Start-Webserver
 							}
 							if ($Error.Count -gt 0)
 							{ # retrieve error message on error
-								$RESULT += "`nError while downloading '$CHECKFILE'`n`n"
+								$RESULT = "`nError while downloading '$CHECKFILE'`n`n"
 								$RESULT += $Error[0]
 								$Error.Clear()
 							}
@@ -901,7 +910,7 @@ function Start-Webserver
 				$BUFFER = [Text.Encoding]::UTF8.GetBytes($HTMLRESPONSE)
 				$RESPONSE.ContentLength64 = $BUFFER.Length
 				$RESPONSE.AddHeader("Last-Modified", [DATETIME]::Now.ToString('r'))
-				$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
+				$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
 				$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 			}
 
@@ -918,16 +927,16 @@ function Start-Webserver
 			# received command to stop webserver?
 			if ($RECEIVED -eq 'GET /exit' -or $RECEIVED -eq 'GET /quit')
 			{ # then break out of while loop
-				"$(Get-Date -Format s) Stopping powershell webserver..."
+				"$(Get-Date -Format s) Stopping webserver..."
 				break;
 			}
 		}
 	}
 	finally
 	{
-		# Stop powershell webserver
+		# Stop webserver
 		$LISTENER.Stop()
 		$LISTENER.Close()
-		"$(Get-Date -Format s) Powershell webserver stopped."
+		"$(Get-Date -Format s) Webserver stopped."
 	}
 }
