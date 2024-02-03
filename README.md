@@ -5,9 +5,9 @@ See Script Center version: [Powershell Webserver](https://github.com/MScholtes/T
 
 Author: Markus Scholtes
 
-Module version: 1.0.6 / 2023-03-27
+Module version: 1.0.7 / 2024-02-03
 
-Script version: 1.5 / 2023-03-26
+Script version: 1.6 / 2024-01-31
 
 ## Installation
 Install with
@@ -47,6 +47,10 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+### 1.0.7 / 2024-02-03
+ - parameters can be handed to PSP files per POST method too
+ - added wasm extension to mime list
+
 ### 1.0.6 / 2023-03-27
  - changed header encoding to Windows 1252 to prevent data loss in cjk encodings
  - fixed bug that cut file names with semicolons in it
@@ -105,7 +109,7 @@ schtasks.exe /Delete /TN "Powershell Webserver"
 ![Screen Browser](ScreenVerySmall.jpg)
 
 ## Embedded code
-You can embed powershell code in html files with psp files ("Powershell Server Pages"). Psp files are html files in which the switch code <% toggles to powershell code and %> toggles back to html.
+You can embed powershell code in html files with psp files ("Powershell Server Pages"). Psp files are html files in which the switch code <% toggles to powershell code and %> toggles back to html. Parameters can be handed per GET or POST.
 
 ![Screen Browser](PSP.jpg)
 
