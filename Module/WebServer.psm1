@@ -2,8 +2,8 @@
 .SYNOPSIS
 Powershell WebServer is a module that starts a webserver (without the need for IIS).
 .NOTES
-Version: 1.0.6
-Date: 2023-03-27
+Version: 1.0.7
+Date: 2024-02-03
 Author: Markus Scholtes
 #>
 

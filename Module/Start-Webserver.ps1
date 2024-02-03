@@ -42,7 +42,7 @@ Delete the webserver task with
 	schtasks.exe /Delete /TN "Powershell Webserver"
 Scheduled tasks are running with low priority per default, so some functions might be slow.
 .Notes
-Version 1.5, 2023-03-26
+Version 1.6, 2024-01-31
 Author: Markus Scholtes
 .LINK
 https://github.com/MScholtes/WebServer
@@ -373,7 +373,7 @@ function Start-Webserver
 								$FILENAME = Split-Path -Leaf $ESCFORMFIELD
 								$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
 								$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($ESCFORMFIELD).ToString('r'))
-								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
+								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.6 on ")
 								$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 								# mark response as already given
 								$RESPONSEWRITTEN = $TRUE
@@ -625,11 +625,28 @@ function Start-Webserver
 						$EXTENSION = [IO.Path]::GetExtension($CHECKFILE)
 						if ($EXTENSION -in @(".bat", ".cmd", ".ps1", ".psp"))
 						{ # ... execute script
+
+							# retrieve parameters
 							$PARAMETERS = ''
-							$PARAMETERS = [URI]::UnescapeDataString($REQUEST.Url.Query)
-							if (![STRING]::IsNullOrEmpty($PARAMETERS))
-							{ # remove seperators for query string
-								$PARAMETERS = $PARAMETERS.Substring(1) -replace "\+"," " -replace "&"," "
+
+							if ($REQUEST.HasEntityBody)
+							{ # POST method
+								# read complete header (inkl. file data) into string. Use Windows 1252 to ensure no data loss in process of bytes-string conversion
+								$READER = New-Object System.IO.StreamReader($REQUEST.InputStream, [System.Text.Encoding]::GetEncoding(1252))
+								$DATA = $READER.ReadToEnd()
+								$READER.Close()
+								$REQUEST.InputStream.Close()
+
+								# remove boundary marker from parameter string
+								$PARAMETERS = ([URI]::UnescapeDataString($DATA)) -replace "\+"," " -replace "&"," "
+							}
+							else
+							{ # GET method
+								$PARAMETERS = [URI]::UnescapeDataString($REQUEST.Url.Query)
+								if (![STRING]::IsNullOrEmpty($PARAMETERS))
+								{ # remove boundary marker from query string
+									$PARAMETERS = $PARAMETERS.Substring(1) -replace "\+"," " -replace "&"," "
+								}
 							}
 							$HTMLRESPONSE = "<!doctype html><html><body><pre>!RESULT</pre></body></html>"
 
@@ -868,7 +885,7 @@ function Start-Webserver
 									$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
 								}
 								$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($CHECKFILE).ToString('r'))
-								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
+								$RESPONSE.AddHeader("Server", "Powershell Webserver/1.6 on ")
 								$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 								# mark response as already given
 								$RESPONSEWRITTEN = $TRUE
@@ -910,7 +927,7 @@ function Start-Webserver
 				$BUFFER = [Text.Encoding]::UTF8.GetBytes($HTMLRESPONSE)
 				$RESPONSE.ContentLength64 = $BUFFER.Length
 				$RESPONSE.AddHeader("Last-Modified", [DATETIME]::Now.ToString('r'))
-				$RESPONSE.AddHeader("Server", "Powershell Webserver/1.5 on ")
+				$RESPONSE.AddHeader("Server", "Powershell Webserver/1.6 on ")
 				$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 			}
 
